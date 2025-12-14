@@ -1,0 +1,15 @@
+[project]
+name = "repo-sanitizer"
+version = "0.1.0"
+description = "A CLI tool to clean stale git branches safely"
+authors = [{ name = "Your Name" }]
+requires-python = ">=3.8"
+dependencies = [
+    "GitPython",
+    "Typer",
+    "InquirerPy",
+    "Rich"
+]
+
+[project.scripts]
+clean-repo = "repo_sanitizer.main:app"
