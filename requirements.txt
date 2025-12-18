@@ -2,3 +2,4 @@ GitPython
 Typer 
 InquirerPy
 Rich
+PyYAML

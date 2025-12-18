@@ -1,40 +1,45 @@
-from rich import print
-from git_handler import get_upstream_status
+from concurrent.futures import ThreadPoolExecutor
+
+from repo_sanitizer.git_handler import get_upstream_status
+from repo_sanitizer.config import load_config
+
+cfg = load_config()
+PROTECTED = set(cfg["protected_branches"])
 
 
-PROTECTED = {"main", "master", "dev", "develop"}
+def is_protected(branch):
+    return branch in PROTECTED
 
 
-def is_protected(name: str):
-    return name in PROTECTED
+def base_branch(repo):
+    for b in cfg["protected_branches"]:
+        if b in repo.branches:
+            return repo.branches[b]
+    return None
 
 
-def is_merged_into_main(repo, branch_name: str):
-    """Check if branch was merged into main."""
-    if "main" not in repo.heads:
-        return False
-
-    main_commit = repo.heads["main"].commit
-    branch_commit = repo.heads[branch_name].commit
-
-    # If ancestor, branch is merged
-    return repo.git.merge_base(main_commit, branch_commit) == repo.git.rev_parse(branch_commit)
+def is_merged(repo, base, branch):
+    merged = repo.git.branch("--merged", base.name)
+    merged = [b.replace("*", "").strip() for b in merged.splitlines()]
+    return branch in merged
 
 
-def find_stale_branches(repo, local_branches):
+def find_stale(repo, branches):
+    base = base_branch(repo)
     stale = []
 
-    for branch in local_branches:
+    def check(branch):
         if is_protected(branch):
-            continue
+            return None
+        if get_upstream_status(repo, branch) == "gone":
+            return branch
+        if base and is_merged(repo, base, branch):
+            return branch
+        return None
 
-        upstream = get_upstream_status(repo, branch)
-        if upstream == "gone":
-            stale.append(branch)
-            continue
-
-        if is_merged_into_main(repo, branch):
-            stale.append(branch)
-            continue
+    with ThreadPoolExecutor() as ex:
+        for r in ex.map(check, branches):
+            if r:
+                stale.append(r)
 
     return stale

@@ -1,10 +1,12 @@
 Metadata-Version: 2.4
 Name: repo-sanitizer
-Version: 0.1.0
-Summary: A CLI tool to clean stale git branches safely
-Author: Your Name
+Version: 2.0.0
 Requires-Python: >=3.8
+License-File: LICENSE
 Requires-Dist: GitPython
 Requires-Dist: Typer
-Requires-Dist: InquirerPy
 Requires-Dist: Rich
+Requires-Dist: InquirerPy
+Requires-Dist: PyYAML
+Requires-Dist: requests
+Dynamic: license-file
