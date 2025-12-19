@@ -62,3 +62,52 @@ def push_changes(repo):
         repo.git.push("--set-upstream", "origin", active_branch.name)
     else:
         repo.git.push()
+
+
+def get_working_tree_diff(repo):
+    """Get diff of unstaged changes."""
+    return repo.git.diff()
+
+
+def get_commit_history(repo, limit=10):
+    """Get recent commit history."""
+    commits = list(repo.iter_commits(max_count=limit))
+    return [{"hash": c.hexsha[:7], "message": c.message.strip(), "author": c.author.name, "date": c.committed_datetime.isoformat()} for c in commits]
+
+
+def get_incoming_commits(repo, source_branch):
+    """Get commits in source_branch that are not in HEAD."""
+    try:
+        commits = list(repo.iter_commits(f"HEAD..{source_branch}"))
+        return [{"hash": c.hexsha[:7], "message": c.message.strip(), "author": c.author.name, "date": c.committed_datetime.isoformat()} for c in commits]
+    except Exception:
+        return []
+
+
+def get_commits_behind(repo):
+    """Get commits that upstream has but we don't."""
+    try:
+        commits = list(repo.iter_commits("HEAD..@{u}"))
+        return [{"hash": c.hexsha[:7], "message": c.message.strip(), "author": c.author.name, "date": c.committed_datetime.isoformat()} for c in commits]
+    except Exception:
+        return []
+
+
+def fetch_repo(repo):
+    """Fetch updates from remote."""
+    repo.git.fetch()
+
+
+def merge_branch(repo, branch):
+    """Merge a branch into the current branch."""
+    repo.git.merge(branch)
+
+
+def rebase_branch(repo, branch):
+    """Rebase current branch onto another branch."""
+    repo.git.rebase(branch)
+
+
+def pull_changes(repo):
+    """Pull changes from upstream."""
+    repo.git.pull()

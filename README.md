@@ -67,7 +67,42 @@ To skip confirmation:
 clean-repo push --auto
 ```
 
-### 4. Undo Deletion
+### 4. AI Code Review 🧐
+
+Get an AI-powered code review of your current working changes (staged and unstaged).
+
+```bash
+clean-repo review
+```
+
+### 5. AI Project Summary 📊
+
+Summarize recent development activity based on commit history.
+
+```bash
+clean-repo summary
+```
+
+### 6. AI-Assisted Git Operations 🚀
+
+Perform standard Git operations with AI summaries of incoming changes.
+
+**Pull Updates:**
+```bash
+clean-repo pull
+```
+
+**Merge Branch:**
+```bash
+clean-repo merge <branch_name>
+```
+
+**Rebase Branch:**
+```bash
+clean-repo rebase <branch_name>
+```
+
+### 7. Undo Deletion
 
 Accidentally deleted a branch? Restore it immediately (if it hasn't been garbage collected).
 

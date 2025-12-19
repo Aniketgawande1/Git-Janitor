@@ -118,3 +118,145 @@ def push(
         console.print("[bold green]✨ Successfully pushed![/bold green]")
     except Exception as e:
         console.print(f"[bold red]❌ Error:[/bold red] {e}")
+
+
+@app.command()
+def review():
+    """AI Code Review for your current working changes."""
+    repo = load_repo()
+    from repo_sanitizer.git_handler import get_working_tree_diff, get_staged_diff
+    from repo_sanitizer.ai_explainer import generate_code_review
+
+    # Check both staged and unstaged changes
+    diff = get_staged_diff(repo) + "\n" + get_working_tree_diff(repo)
+    
+    if not diff.strip():
+        console.print("[yellow]No changes to review.[/yellow]")
+        return
+
+    with console.status("[bold cyan]🤖 Analyzing code...[/bold cyan]"):
+        review = generate_code_review(diff)
+
+    console.print("\n[bold magenta]🧐 AI Code Review:[/bold magenta]")
+    console.print(Markdown(review))
+    console.print()
+
+
+@app.command()
+def summary(limit: int = typer.Option(10, "--limit", "-n", help="Number of commits to summarize")):
+    """AI Summary of recent commit history."""
+    repo = load_repo()
+    from repo_sanitizer.git_handler import get_commit_history
+    from repo_sanitizer.ai_explainer import summarize_history
+
+    commits = get_commit_history(repo, limit)
+    
+    if not commits:
+        console.print("[yellow]No commits found.[/yellow]")
+        return
+
+    with console.status("[bold green]📊 Summarizing history...[/bold green]"):
+        summary = summarize_history(commits)
+
+    console.print("\n[bold blue]📜 Project Activity Summary:[/bold blue]")
+    console.print(Markdown(summary))
+    console.print()
+
+
+@app.command()
+def merge(branch: str):
+    """Merge a branch with AI summary of incoming changes."""
+    repo = load_repo()
+    from repo_sanitizer.git_handler import get_incoming_commits, merge_branch
+    from repo_sanitizer.ai_explainer import summarize_history
+
+    commits = get_incoming_commits(repo, branch)
+    
+    if not commits:
+        console.print(f"[yellow]No new commits in {branch} to merge.[/yellow]")
+        return
+
+    console.print(f"[bold cyan]🔍 Analyzing {len(commits)} incoming commits from {branch}...[/bold cyan]")
+    
+    with console.status("[bold green]🤖 Generating summary...[/bold green]"):
+        summary = summarize_history(commits)
+
+    console.print("\n[bold magenta]Incoming Changes Summary:[/bold magenta]")
+    console.print(Markdown(summary))
+    console.print()
+
+    if typer.confirm(f"🚀 Merge {branch} into current branch?"):
+        try:
+            merge_branch(repo, branch)
+            console.print(f"[green]✓ Successfully merged {branch}[/green]")
+        except Exception as e:
+            console.print(f"[red]✗ Merge failed: {e}[/red]")
+    else:
+        console.print("[yellow]Merge aborted.[/yellow]")
+
+
+@app.command()
+def pull():
+    """Pull upstream changes with AI summary."""
+    repo = load_repo()
+    from repo_sanitizer.git_handler import fetch_repo, get_commits_behind, pull_changes
+    from repo_sanitizer.ai_explainer import summarize_history
+
+    with console.status("[bold blue]🔄 Fetching updates...[/bold blue]"):
+        fetch_repo(repo)
+    
+    commits = get_commits_behind(repo)
+    
+    if not commits:
+        console.print("[green]Already up to date![/green]")
+        return
+
+    console.print(f"[bold cyan]🔍 Found {len(commits)} new commits upstream...[/bold cyan]")
+    
+    with console.status("[bold green]🤖 Generating summary...[/bold green]"):
+        summary = summarize_history(commits)
+
+    console.print("\n[bold magenta]Upstream Updates Summary:[/bold magenta]")
+    console.print(Markdown(summary))
+    console.print()
+
+    if typer.confirm("🚀 Pull updates?"):
+        try:
+            pull_changes(repo)
+            console.print("[green]✓ Successfully pulled updates[/green]")
+        except Exception as e:
+            console.print(f"[red]✗ Pull failed: {e}[/red]")
+    else:
+        console.print("[yellow]Pull aborted.[/yellow]")
+
+
+@app.command()
+def rebase(branch: str):
+    """Rebase onto a branch with AI summary."""
+    repo = load_repo()
+    from repo_sanitizer.git_handler import get_incoming_commits, rebase_branch
+    from repo_sanitizer.ai_explainer import summarize_history
+
+    commits = get_incoming_commits(repo, branch)
+    
+    if not commits:
+        console.print(f"[yellow]No new commits in {branch} to rebase onto.[/yellow]")
+        return
+
+    console.print(f"[bold cyan]🔍 Analyzing {len(commits)} commits from {branch}...[/bold cyan]")
+    
+    with console.status("[bold green]🤖 Generating summary...[/bold green]"):
+        summary = summarize_history(commits)
+
+    console.print("\n[bold magenta]Rebase Target Summary:[/bold magenta]")
+    console.print(Markdown(summary))
+    console.print()
+
+    if typer.confirm(f"🚀 Rebase onto {branch}?"):
+        try:
+            rebase_branch(repo, branch)
+            console.print(f"[green]✓ Successfully rebased onto {branch}[/green]")
+        except Exception as e:
+            console.print(f"[red]✗ Rebase failed: {e}[/red]")
+    else:
+        console.print("[yellow]Rebase aborted.[/yellow]")
